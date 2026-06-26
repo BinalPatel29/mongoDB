@@ -51,4 +51,16 @@ router.delete('/:id', async(req,res,next) => {
     }
 });
 
+router.patch('/:id', async(req,res,next) => {
+    try{
+        //console.log('-------------------',req.params.id)
+        const note = await Note.findByIdAndUpdate(req.params.id, req.body, {new: true});
+        if(!note) return res.status(404).json({ error: 'Note not found' });
+        res.json( { message : 'Note updated successfully', note });
+    }
+    catch(error){
+        next(error);
+    }
+});
+
 export default router;
