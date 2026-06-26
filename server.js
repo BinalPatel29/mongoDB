@@ -39,10 +39,17 @@ app.use((req,res,next) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
+// CastError check
 app.use((err,req,res,next) => {
     if (err.name === 'CastError') {
        return res.status(400).json({ error: 'Invalid note ID format' });
     }
+});
+
+// working error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
