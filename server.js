@@ -8,6 +8,25 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).send({ status: 400, message: err.message });
+  }
+  next();
+});
+
+app.use((req, res, next) => {
+  if (req.method === 'POST') {
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).send('Bad Request');
+    }
+    if (Object.keys(req.body).length === 0 || !req.body.text) {
+      return res.status(400).json({ error: 'text is required' });
+    }
+  }
+  next(); 
+});
+
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 mongoose.connect(process.env.MONGO_URI)

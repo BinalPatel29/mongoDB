@@ -24,4 +24,31 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
+
+router.post('/', async(req,res,next) => {
+    try{
+        const { text } = req.body;
+        const note = new Note({ text });
+        await note.save();
+        res.status(201).json(note);
+    }
+    catch(error){
+        if (error.name === 'ValidationError'){
+            return res.status(400).json({ error : error.message });
+        }
+        next(error);
+    }
+});
+
+router.delete('/:id', async(req,res,next) => {
+    try{
+        const note = await Note.findByIdAndDelete(req.params.id);
+        if(!note) return res.status(404).json({ error: 'Note not found' });
+        res.json({ message : 'Note deleted successfully' });
+    }
+    catch(error){
+        next(error);
+    }
+});
+
 export default router;
