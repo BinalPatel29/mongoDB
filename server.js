@@ -4,7 +4,7 @@ import 'dotenv/config';
 import noteRouter from './routes/notes.js'; 
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -39,15 +39,10 @@ app.use((req,res,next) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
-app.use((req,res,next) => {
+app.use((err,req,res,next) => {
     if (err.name === 'CastError') {
        return res.status(400).json({ error: 'Invalid note ID format' });
     }
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
