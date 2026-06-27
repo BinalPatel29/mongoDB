@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import 'dotenv/config';
 import noteRouter from './routes/notes.js'; 
+import authRouter from './routes/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,7 +16,7 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.use((req, res, next) => {
+app.use('/api/notes', (req, res, next) => {
   if (req.method === 'POST') {
     if (!req.body || typeof req.body !== 'object') {
       return res.status(400).send('Bad Request');
@@ -24,32 +25,37 @@ app.use((req, res, next) => {
       return res.status(400).json({ error: 'text is required' });
     }
   }
-  next(); 
+  next();
 });
 
 console.log("MONGO_URI:", process.env.MONGO_URI);
+
+if (!process.env.MONGO_URI) {
+  console.error('Missing MONGO_URI environment variable');
+  process.exit(1);
+}
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.error('MongoDB connection failed:', err.message));
 
+app.use('/api/auth', authRouter);
 app.use('/api/notes', noteRouter);
 
-app.use((req,res,next) => {
-    res.status(404).json({ error: 'Route not found' });
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
-// CastError check
-app.use((err,req,res,next) => {
-    if (err.name === 'CastError') {
-       return res.status(400).json({ error: 'Invalid note ID format' });
-    }
+app.use((err, req, res, next) => {
+  if (err.name === 'CastError') {
+    return res.status(400).json({ error: 'Invalid note ID format' });
+  }
+  next(err);
 });
 
-// working error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: err.message || 'Internal Server Error' });
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
