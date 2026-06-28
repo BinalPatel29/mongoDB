@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import noteRouter from './routes/notes.js'; 
 import authRouter from './routes/auth.js';
+import { protect } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use('/api/notes', (req, res, next) => {
     if (Object.keys(req.body).length === 0 || !req.body.text) {
       return res.status(400).json({ error: 'text is required' });
     }
+    return next();
   }
   next();
 });
@@ -40,7 +42,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((err) => console.error('MongoDB connection failed:', err.message));
 
 app.use('/api/auth', authRouter);
-app.use('/api/notes', noteRouter);
+app.use('/api/notes', protect, noteRouter);
 
 app.use((req, res, next) => {
   res.status(404).json({ error: 'Route not found' });
