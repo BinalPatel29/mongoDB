@@ -1,20 +1,34 @@
-async function apiFetch(endpoint,options){
+export async function apiFetch(endpoint, options = {}) {
     const baseUrl = "http://localhost:3000/api";
-    const token = localStorage.getItem('token');
-    const headers = {
-            "Content-Type" : "application/json",
-            "Authorization" : `Bearer ${token}` 
-        }
-    const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+    const token = localStorage.getItem("token");
 
-    try{
-        const response = await fetch(url,headers,options);
-        if(!response.ok){
-            throw new Error('Response status: ${response.status}');
+    const headers = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {})
+    };
+
+    const url = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`;
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Response status: ${response.status} ${errorText}`);
         }
-        return await response.json();
-    }
-    catch(error){
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            return await response.json();
+        }
+
+        return await response.text();
+    } catch (error) {
         console.error(error.message);
+        throw error;
     }
 }
