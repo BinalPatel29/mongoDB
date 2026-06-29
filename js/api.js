@@ -1,5 +1,5 @@
 export async function apiFetch(endpoint, options = {}) {
-    const baseUrl = "http://localhost:3000/api";
+    const baseUrl = "http://localhost:3000";
     const token = localStorage.getItem("token");
 
     const headers = {
