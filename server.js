@@ -17,19 +17,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.use('/api/notes', (req, res, next) => {
-  if (req.method === 'POST') {
-    if (!req.body || typeof req.body !== 'object') {
-      return res.status(400).send('Bad Request');
-    }
-    if (Object.keys(req.body).length === 0 || !req.body.text) {
-      return res.status(400).json({ error: 'text is required' });
-    }
-    return next();
-  }
-  next();
-});
-
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 if (!process.env.MONGO_URI) {
