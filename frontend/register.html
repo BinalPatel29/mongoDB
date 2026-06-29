@@ -52,6 +52,13 @@
                     method: "POST", body: JSON.stringify(payload)
                 });
 
+                if (response && response.token) {
+                    localStorage.setItem("token", response.token);
+                    console.log("Token saved to localStorage:", response.token);
+                } else {
+                    console.warn("Backend didn't return a 'token' key. Check your response object:", response);
+                }
+
                 successDiv.textContent = "Registration successful! Redirecting...";
                 successDiv.style.display = "block";
 
