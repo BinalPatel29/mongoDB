@@ -4,9 +4,11 @@ import 'dotenv/config';
 import noteRouter from './routes/notes.js'; 
 import authRouter from './routes/auth.js';
 import { protect } from './middleware/auth.js';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use(cors());
 
 app.use(express.json());
 
