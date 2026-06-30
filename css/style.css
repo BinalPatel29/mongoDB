@@ -24,7 +24,8 @@ h1 {
 
 #errorMessage, .inline-error { 
   color: rgb(255, 107, 107); 
-  font-size: 16px; 
+  font-size: 20px;
+  font-weight: bold; 
   margin-top: 15px; 
   display: none; 
 } 
@@ -153,6 +154,8 @@ h1 {
     color: rgba(241, 243, 245, 0.7); 
     margin: 20px 0;
     font-style: italic;
+    font-size: 25px;
+    font-weight: bold;
 }
 
 #noteList {
@@ -200,4 +203,22 @@ h1 {
     background-color: #ccf1f5;
     cursor: pointer;
     border: none;
+}
+
+.note-del {
+    display: flex;
+    justify-content: center;
+    background-color: #dc3545;
+    color: #ffffff; 
+    border-radius: 8px;
+    font-weight: bold; 
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%; 
+    max-width: 150px;
+    height: 50px; 
+    font-size: 25px;
+    border-color: white;
+    margin-left: 30px;
+    padding: 8px 16px;
 }

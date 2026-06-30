@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes Page</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/search.css">
 </head>
 <body>
 
@@ -20,6 +19,8 @@
         <input type="text" id="noteInput" placeholder="Write your note..." required>
         <button class="add-btn" id="addnoteBtn">+ Add Notes</button>
         
+        <p class="error-message" id="errorMessage"></p>
+
         <p class="empty-state" id="emptyState">--- No notes added yet ---</p>
         
         <div class="notes-list" id="noteList"></div>
@@ -34,6 +35,27 @@
         const notesList = document.getElementById('noteList');
         const logoutBtn = document.getElementById('logoutBtn');
         const emptyStateList = document.getElementById('emptyState');
+        const errorEl = document.getElementById('errorMessage');
+        
+        function showError(message){
+            if(message){
+                errorEl.textContent = message;
+                errorEl.style.display = "block";
+            }
+            else{
+                errorEl.textContent = "";
+                errorEl.style.display = "none";
+            }
+        }
+
+        function checkTokenExpiry(error) {
+            if (error && error.message === 'Invalid or expired token') {
+                localStorage.clear();
+                window.location.href = '/frontend/index.html';
+                return true;
+            }
+            return false;
+        }
 
         function setFormEnabled(enabled) {
             noteInput.disabled = !enabled;
@@ -86,16 +108,27 @@
                 const isValidDate = parsedDate instanceof Date && !isNaN(parsedDate)
                 dateEl.textContent = isValidDate ? parsedDate.toLocaleString() : new Date().toLocaleString();
 
+                const deleteE1 = document.createElement('p');
+                deleteE1.className = 'note-del';
+                deleteE1.textContent = "DELETE";
+
+                deleteE1.addEventListener('click', () => {
+                    handleDeleteNote(note._id || note.id); 
+                });
+
                 noteItem.appendChild(textEl);
                 noteItem.appendChild(dateEl);
+                noteItem.appendChild(deleteE1);
                 notesList.appendChild(noteItem);
             });
         }
 
         async function handleAddNote() {
+            showError("");
             const noteText = noteInput.value.trim();
 
             if(!noteText){
+                showError("Note cannot be empty.");
                 noteInput.focus();
                 return;
             }
@@ -122,6 +155,19 @@
         function handleLogout(){
             localStorage.removeItem('token');
             window.location.href = '/frontend/index.html';
+        }
+
+        async function handleDeleteNote(noteId){
+            if(!noteId) return;
+            try{
+                await apiFetch(`/api/notes/${noteId}` ,{
+                    method: "DELETE"
+                });
+                await fetchAndLoadNotes();
+            }
+            catch(error){
+               console.error('Failed to delete note:', error.message); 
+            }
         }
     </script>
 </body>
