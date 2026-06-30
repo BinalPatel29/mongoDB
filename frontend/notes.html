@@ -4,73 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes Page</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/search.css">
 </head>
 <body>
-    <script>
+
+<div class="notes-wrapper">
+    <h1>📒 NOTES</h1>
+    
+    <div class="logout">
+        <button id="logoutBtn">LOG OUT</button>
+    </div>
+    
+    <div class="notes-card">
+        <input type="text" id="noteInput" placeholder="Write your note..." required>
+        <button class="add-btn" id="addnoteBtn">+ Add Notes</button>
+        
+        <p class="empty-state" id="emptyState">--- No notes added yet ---</p>
+        
+        <div class="notes-list" id="noteList"></div>
+    </div>
+</div>
+    
+    <script type="module">
         import {apiFetch} from '../js/api.js'
 
-        document.addEventListener('DocumentContentLoaded', async() => {
-            const token = localStorage.getItem(token);
+        const addBtn = document.getElementById('addnoteBtn');
+        const noteInput = document.getElementById('noteInput');
+        const notesList = document.getElementById('noteList');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const emptyStateList = document.getElementById('emptyState');
+
+        function setFormEnabled(enabled) {
+            noteInput.disabled = !enabled;
+            addBtn.disabled = !enabled;
+        }
+
+        document.addEventListener('DOMContentLoaded', async() => {
+            const token = localStorage.getItem('token');
 
             if(!token){
-                window.location.href= '/fronted/index.html';
+                window.location.href= '/frontend/index.html';
+                return;
             }
-            return;
-        })
-
-        try{
-            const notes = await apiFetch('/api/notes', {
-                method: "GET", 
-                headers: {
-                "Authorization": `bearer ${token}`
-                }
-            });
-            displayNotes(notes); 
-        }
-        catch(error){
-            console.error('Failed to load notes:', error.message);
-        }
-
-        function displayNotes(notesList) {
-        const container = document.getElementById('notesContainer');
-        if (!container) return;
-
-        container.innerHTML = ''; 
-        
-        notesList.forEach(note => {
-            const div = document.createElement('div');
-            div.textContent = note.text; 
-            container.appendChild(div);
+            logoutBtn.addEventListener("click", handleLogout);
+            addBtn.addEventListener("click", handleAddNote);
+            await fetchAndLoadNotes();
         });
-    }
 
-        function handlerNotes(event){
-            event.preventDeafult();
-
-            const data = {
-                text : noteText,
-                date : Date.now()
-            }
-
+        async function fetchAndLoadNotes() {
             try{
-                const response = await apiFetch('/api/notes', {
-                    method : "POST",
-                    headers : {
-                      "Content-Type": "application/json",
-                      "Authorization": `Bearer ${localStorage.getItem('token')}`  
-                    },
-                    body : JSON.stringify(data);
+                const notes = await apiFetch('/api/notes', {
+                    method: "GET"
                 });
-                if(!response.token){
-                    window.location.href('/frontend/index.html');
-                }
-                else{
-                    console.log('sucess:', data);
-                }
+                displayNotes(notes); 
             }
             catch(error){
-                console.error('Fetch error:', error.message)
+               console.error('Failed to load notes:', error.message);
             }
+        }
+
+        async function displayNotes(notesArray){
+            notesList.innerHTML="";
+            if(!notesArray || notesArray.length === 0){
+                emptyStateList.style.display= "block";
+                return;
+            }
+            emptyStateList.style.display= "none";
+
+            notesArray.forEach(note => {
+                const noteItem = document.createElement('div');
+                noteItem.className = 'note-item';
+
+                const textEl = document.createElement('p');
+                textEl.className = 'note-text';
+                textEl.textContent = note.text; 
+
+                const dateEl = document.createElement('span');
+                dateEl.className = 'note-date';
+                const parsedDate = note.createdAt ? new Date(note.createdAt) : new Date();
+                const isValidDate = parsedDate instanceof Date && !isNaN(parsedDate)
+                dateEl.textContent = isValidDate ? parsedDate.toLocaleString() : new Date().toLocaleString();
+
+                noteItem.appendChild(textEl);
+                noteItem.appendChild(dateEl);
+                notesList.appendChild(noteItem);
+            });
+        }
+
+        async function handleAddNote() {
+            const noteText = noteInput.value.trim();
+
+            if(!noteText){
+                noteInput.focus();
+                return;
+            }
+            setFormEnabled(false);
+
+            try{
+                await apiFetch('/api/notes', {
+                    method : "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body : JSON.stringify({ text : noteText }) 
+                });
+                noteInput.value ="";
+                await fetchAndLoadNotes();
+            }
+            catch(error){
+                console.error("Fetch error", error.message);
+            }
+            finally{
+                setFormEnabled(true);
+                noteInput.focus();
+            }
+        } 
+
+        function handleLogout(){
+            localStorage.removeItem('token');
+            window.location.href = '/frontend/index.html';
         }
     </script>
 </body>
